@@ -12,17 +12,8 @@ RUN a2enmod rewrite
 # Copier tous les fichiers dans le conteneur
 COPY . /var/www/html
 
-# Diagnostiquer si .htaccess existe
-RUN ls -la /var/www/html/public || echo "Diagnostic: Le fichier public/.htaccess est absent"
-
-# Vérifier et créer .htaccess si nécessaire
-RUN test -f /var/www/html/public/.htaccess || echo "DirectoryIndex index.php\nRewriteEngine On\nRewriteCond %{REQUEST_FILENAME} !-f\nRewriteCond %{REQUEST_FILENAME} !-d\nRewriteRule ^(.*)$ index.php [L]" > /var/www/html/public/.htaccess
-
-# Donner les permissions nécessaires
-RUN chmod -R 755 /var/www/html
-RUN chmod 644 /var/www/html/public/.htaccess || echo "Avertissement: Impossible de changer les permissions de public/.htaccess"
-RUN chmod 644 /var/www/html/public/index.php || echo "Avertissement: Impossible de changer les permissions de public/index.php"
-RUN chown -R www-data:www-data /var/www/html
+# Toujours créer le fichier .htaccess avec contenu par défaut (écrasera s'il existe déjà)
+RUN echo "DirectoryIndex index.php\nRewriteEngine On\nRewriteCond %{REQUEST_FILENAME} !-f\nRewriteCond %{REQUEST_FILENAME} !-d\nRewriteRule ^(.*)$ index.php [L]" > /var/www/html/public/.htaccess
 
 # Configurer le dossier public comme racine
 WORKDIR /var/www/html/public
@@ -30,8 +21,11 @@ WORKDIR /var/www/html/public
 # Modifier la configuration Apache pour définir "public/" comme racine
 RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|' /etc/apache2/sites-available/000-default.conf
 
-# Vérifier les fichiers dans le conteneur (diagnostic)
-RUN ls -la /var/www/html && ls -la /var/www/html/public
+# Donner les permissions nécessaires
+RUN chmod -R 755 /var/www/html
+RUN chmod 644 /var/www/html/public/.htaccess
+RUN chmod 644 /var/www/html/public/index.php
+RUN chown -R www-data:www-data /var/www/html
 
 # Exposer le port par défaut d'Apache
 EXPOSE 80
