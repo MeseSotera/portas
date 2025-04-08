@@ -1,0 +1,20 @@
+FROM php:8.0-apache
+
+# Copier le dossier public (point d'entrée) dans le répertoire racine du serveur Apache
+COPY ./public /var/www/html
+
+# Installer SQLite et les extensions PHP nécessaires
+RUN docker-php-ext-install pdo pdo_sqlite
+
+# Exposer le port 80 pour les connexions HTTP
+EXPOSE 80
+
+# Commande pour démarrer le serveur Apache
+CMD ["apache2-foreground"]
+
+
+FROM php:8.0-apache
+COPY ./public /var/www/html
+RUN docker-php-ext-install pdo pdo_sqlite
+EXPOSE 80
+CMD ["apache2-foreground"]
