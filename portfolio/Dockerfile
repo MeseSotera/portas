@@ -12,7 +12,10 @@ RUN a2enmod rewrite
 # Copier tous les fichiers dans le conteneur
 COPY . /var/www/html
 
-# Toujours créer le fichier .htaccess avec contenu par défaut (écrasera s'il existe déjà)
+# Créer le répertoire public s'il n'existe pas
+RUN mkdir -p /var/www/html/public
+
+# Toujours créer (ou recréer) le fichier .htaccess avec le contenu approprié
 RUN echo "DirectoryIndex index.php\nRewriteEngine On\nRewriteCond %{REQUEST_FILENAME} !-f\nRewriteCond %{REQUEST_FILENAME} !-d\nRewriteRule ^(.*)$ index.php [L]" > /var/www/html/public/.htaccess
 
 # Configurer le dossier public comme racine
@@ -24,7 +27,7 @@ RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|' /et
 # Donner les permissions nécessaires
 RUN chmod -R 755 /var/www/html
 RUN chmod 644 /var/www/html/public/.htaccess
-RUN chmod 644 /var/www/html/public/index.php
+RUN chmod 644 /var/www/html/public/index.php || echo "index.php non trouvé, permissions non appliquées"
 RUN chown -R www-data:www-data /var/www/html
 
 # Exposer le port par défaut d'Apache
