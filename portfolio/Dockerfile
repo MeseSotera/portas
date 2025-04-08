@@ -9,11 +9,8 @@ RUN apt-get update && apt-get install -y \
 # Activer le module rewrite pour Apache
 RUN a2enmod rewrite
 
-# Copier tous les fichiers, y compris .htaccess
+# Copier tous les fichiers dans le conteneur
 COPY . /var/www/html
-
-# S'assurer que .htaccess est dans public/
-RUN cp /var/www/html/.htaccess /var/www/html/public/.htaccess
 
 # Configurer le dossier public comme racine
 WORKDIR /var/www/html/public
