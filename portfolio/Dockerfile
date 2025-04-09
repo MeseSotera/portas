@@ -9,21 +9,29 @@ RUN apt-get update && apt-get install -y \
 # Activer le module rewrite pour Apache
 RUN a2enmod rewrite
 
-# Copier tout le contenu du projet dans le conteneur
-COPY . /var/www/html/
+# Copier tous les fichiers dans le conteneur
+COPY . /var/www/html
 
-# Créer le répertoire public s'il n'existe pas
+# Créer le répertoire public si ce n'est pas déjà fait
 RUN mkdir -p /var/www/html/public
 
-# Vérifier si index.php existe, sinon créer un fichier par défaut
-RUN [ -f /var/www/html/public/index.php ] || echo "<?php echo 'Bienvenue sur votre application MVC';" > /var/www/html/public/index.php
+# Toujours créer le fichier .htaccess avec contenu par défaut (écrasera s'il existe déjà)
+RUN echo "DirectoryIndex index.php\nRewriteEngine On\nRewriteCond %{REQUEST_FILENAME} !-f\nRewriteCond %{REQUEST_FILENAME} !-d\nRewriteRule ^(.*)$ index.php [L]" > /var/www/html/public/.htaccess
 
-# Copier le fichier de configuration Apache dans le conteneur
-COPY apache-config.conf /etc/apache2/sites-available/000-default.conf
+# Si le fichier index.php n'existe pas, en créer un vide
+RUN [ -f /var/www/html/public/index.php ] || echo "<?php echo 'Bienvenue';" > /var/www/html/public/index.php
 
-# Donner les permissions nécessaires pour Apache
-RUN chmod -R 755 /var/www/html && \
-    chown -R www-data:www-data /var/www/html
+# Configurer le dossier public comme racine
+WORKDIR /var/www/html/public
+
+# Modifier la configuration Apache pour définir "public/" comme racine
+RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|' /etc/apache2/sites-available/000-default.conf
+
+# Donner les permissions nécessaires
+RUN chmod -R 755 /var/www/html
+RUN chmod 644 /var/www/html/public/.htaccess
+RUN chmod 644 /var/www/html/public/index.php
+RUN chown -R www-data:www-data /var/www/html
 
 # Exposer le port par défaut d'Apache
 EXPOSE 80
