@@ -15,10 +15,10 @@ COPY . /var/www/html/
 # Créer le répertoire public s'il n'existe pas
 RUN mkdir -p /var/www/html/public
 
-# Configurer Apache pour que le répertoire public soit la racine
-RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|' /etc/apache2/sites-available/000-default.conf
+# Vérifier si index.php existe, sinon créer un fichier par défaut
+RUN [ -f /var/www/html/public/index.php ] || echo "<?php echo 'Bienvenue sur votre application MVC';" > /var/www/html/public/index.php
 
-# Ajouter une configuration Apache pour s'assurer que le fichier index.php est utilisé par défaut
+# Ajouter une configuration Apache pour le répertoire public
 RUN echo "<Directory /var/www/html/public>
     Options Indexes FollowSymLinks
     AllowOverride All
@@ -27,7 +27,10 @@ RUN echo "<Directory /var/www/html/public>
 </Directory>" > /etc/apache2/conf-available/public.conf && \
     a2enconf public
 
-# Donner les permissions nécessaires
+# Modifier la configuration Apache pour définir "public/" comme racine
+RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|' /etc/apache2/sites-available/000-default.conf
+
+# Donner les permissions nécessaires pour Apache
 RUN chmod -R 755 /var/www/html
 RUN chown -R www-data:www-data /var/www/html
 
