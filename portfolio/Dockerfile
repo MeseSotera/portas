@@ -10,13 +10,34 @@ RUN apt-get update && apt-get install -y \
 RUN a2enmod rewrite
 
 # Copier tous les fichiers et dossiers du projet dans le conteneur
-COPY . /var/www/html/
+COPY . /var/www/html
 
-# Configurer le dossier public comme racine (optionnel pour MVC)
-RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|' /etc/apache2/sites-available/000-default.conf
+# Créer le répertoire public si ce n'est pas déjà fait
+RUN mkdir -p /var/www/html/public
 
-# Créer le fichier .htaccess si nécessaire
+# Toujours créer le fichier .htaccess avec un contenu par défaut (écrasera s'il existe déjà)
 RUN echo "DirectoryIndex index.php\nRewriteEngine On\nRewriteCond %{REQUEST_FILENAME} !-f\nRewriteCond %{REQUEST_FILENAME} !-d\nRewriteRule ^(.*)$ index.php [L]" > /var/www/html/public/.htaccess
+
+# Copier le contenu personnalisé dans le fichier index.php
+RUN echo "<?php \n\
+\n\
+session_start();\n\
+\n\
+\$path = \$_SERVER['REQUEST_SCHEME'].\"://\".\$_SERVER['SERVER_NAME'].\$_SERVER['PHP_SELF'];\n\
+\$root = str_replace(\"index.php\", \"\",\$path);\n\
+\n\
+define('ROOT', \$root);\n\
+define('ASSETS', \$root . \"assets/\");\n\
+\n\
+include __DIR__ . '/../app/init.php';\n\
+\n\
+\$router = new Router();" > /var/www/html/public/index.php
+
+# Configurer le dossier public comme racine
+WORKDIR /var/www/html/public
+
+# Modifier la configuration Apache pour définir "public/" comme racine
+RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|' /etc/apache2/sites-available/000-default.conf
 
 # Donner les permissions nécessaires
 RUN chmod -R 755 /var/www/html && \
