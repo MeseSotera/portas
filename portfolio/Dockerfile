@@ -18,15 +18,8 @@ RUN mkdir -p /var/www/html/public
 # Vérifier si index.php existe, sinon créer un fichier par défaut
 RUN [ -f /var/www/html/public/index.php ] || echo "<?php echo 'Bienvenue sur votre application MVC';" > /var/www/html/public/index.php
 
-# Créer un fichier de configuration Apache pour le répertoire public
-RUN echo '<VirtualHost *:80>
-    DocumentRoot /var/www/html/public
-    <Directory /var/www/html/public>
-        Options Indexes FollowSymLinks
-        AllowOverride All
-        Require all granted
-    </Directory>
-</VirtualHost>' > /etc/apache2/sites-available/000-default.conf
+# Copier le fichier de configuration Apache dans le conteneur
+COPY apache-config.conf /etc/apache2/sites-available/000-default.conf
 
 # Donner les permissions nécessaires pour Apache
 RUN chmod -R 755 /var/www/html && \
