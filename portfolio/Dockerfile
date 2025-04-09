@@ -18,21 +18,19 @@ RUN mkdir -p /var/www/html/public
 # Vérifier si index.php existe, sinon créer un fichier par défaut
 RUN [ -f /var/www/html/public/index.php ] || echo "<?php echo 'Bienvenue sur votre application MVC';" > /var/www/html/public/index.php
 
-# Ajouter une configuration Apache pour le répertoire public
-RUN echo "<Directory /var/www/html/public>
-    Options Indexes FollowSymLinks
-    AllowOverride All
-    Require all granted
-    DirectoryIndex index.php index.html
-</Directory>" > /etc/apache2/conf-available/public.conf && \
-    a2enconf public
-
-# Modifier la configuration Apache pour définir "public/" comme racine
-RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|' /etc/apache2/sites-available/000-default.conf
+# Créer un fichier de configuration Apache pour le répertoire public
+RUN echo '<VirtualHost *:80> \
+    DocumentRoot /var/www/html/public \
+    <Directory /var/www/html/public> \
+        Options Indexes FollowSymLinks \
+        AllowOverride All \
+        Require all granted \
+    </Directory> \
+</VirtualHost>' > /etc/apache2/sites-available/000-default.conf
 
 # Donner les permissions nécessaires pour Apache
-RUN chmod -R 755 /var/www/html
-RUN chown -R www-data:www-data /var/www/html
+RUN chmod -R 755 /var/www/html && \
+    chown -R www-data:www-data /var/www/html
 
 # Exposer le port par défaut d'Apache
 EXPOSE 80
