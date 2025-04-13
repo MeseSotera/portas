@@ -13,8 +13,8 @@ RUN a2enmod rewrite
 # Copier tous les fichiers et dossiers du projet dans le conteneur
 COPY portfolio /var/www/html
 
-# Copier le fichier portfolio.db dans le conteneur
-COPY portfolio/portfolio.db /var/www/html/portfolio.db
+# Copier le fichier portfolio.db depuis le dossier public
+COPY portfolio/public/portfolio.db /var/www/html/portfolio.db
 
 # Donner les permissions nécessaires pour le fichier de base de données
 RUN chmod 644 /var/www/html/portfolio.db && \
