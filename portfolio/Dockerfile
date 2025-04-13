@@ -10,10 +10,17 @@ RUN apt-get update && apt-get install -y \
 # Activer le module rewrite pour Apache
 RUN a2enmod rewrite
 
-# Copier tous les fichiers et dossiers du répertoire "portfolio" dans le conteneur
+# Copier tous les fichiers et dossiers du projet dans le conteneur
 COPY portfolio /var/www/html
 
-# Toujours créer le fichier .htaccess avec le contenu par défaut (s'il n'existe pas déjà)
+# Copier le fichier portfolio.db dans le conteneur
+COPY portfolio/portfolio.db /var/www/html/portfolio.db
+
+# Donner les permissions nécessaires pour le fichier de base de données
+RUN chmod 644 /var/www/html/portfolio.db && \
+    chown www-data:www-data /var/www/html/portfolio.db
+
+# Toujours créer le fichier .htaccess avec un contenu par défaut (s'il n'existe pas déjà)
 RUN echo "DirectoryIndex index.php\nRewriteEngine On\nRewriteCond %{REQUEST_FILENAME} !-f\nRewriteCond %{REQUEST_FILENAME} !-d\nRewriteRule ^(.*)$ index.php [L]" > /var/www/html/public/.htaccess
 
 # Configurer le répertoire public comme racine
